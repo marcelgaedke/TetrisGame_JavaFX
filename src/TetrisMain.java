@@ -1,13 +1,18 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 
 import javax.swing.Timer;
 
+import javafx.animation.AnimationTimer;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.event.EventTarget;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -23,6 +28,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 
 public class TetrisMain extends Application {
 	
@@ -49,7 +55,6 @@ public class TetrisMain extends Application {
 	private static int score=0;
 	
 	private static void displayCurrentObject() {
-		//gridCanvasGC.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
 		currentObjectGC.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
 		for (XYPair xyPair : currentObject.getObjectCoordinates()) {
 			currentObjectGC.setFill(Color.RED);
@@ -58,6 +63,7 @@ public class TetrisMain extends Application {
 	}
 	
 	private static void displayFixedObjects(GraphicsContext gc) {
+		fixedObjectsGC.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
 		for(XYPair xyPair:fixedObjects) {
 			gc.setFill(Color.PURPLE);
 			gc.fillRect(xyPair.getxCoordinate()*gridColumnWidth, xyPair.getyCoordinate()*gridRowHeight, gridColumnWidth, gridRowHeight);
@@ -120,6 +126,18 @@ public class TetrisMain extends Application {
 		//if Object is at bottom then fix it and generate new current Object
 		if(isBottom()) {		
 			currentObject.setFixed();
+			
+			
+						
+//			PauseTransition pauseTransition = new PauseTransition(Duration.seconds(1));
+//			pauseTransition.setOnFinished(event ->{
+//				
+//			});
+			
+				
+
+			
+			
 			fixedObjects.addAll(currentObject.getObjectCoordinates());
 			//displayFixedObjects(fixedObjectsGC);
 			TetrisObject newObject = generateNewTetrisObject();
@@ -135,7 +153,7 @@ public class TetrisMain extends Application {
 						rowSet.add(xyPair.getxCoordinate());
 					}
 				}
-				if(rowSet.size()==12) {
+				if(rowSet.size()==12) {	
 					System.out.println("Row Nr. "+i+"is complete");
 					score++;
 					System.out.println("Score: "+score);
@@ -145,28 +163,33 @@ public class TetrisMain extends Application {
 			}
 			
 			//Remove complete rows
-			if(!completeRowNos.isEmpty()) {
-				for (XYPair xyPair : fixedObjects) {
-					for (Integer integer : completeRowNos) {
-						if(xyPair.getyCoordinate() == integer.intValue()) {
-							fixedObjects.remove(xyPair);
-						}
-					}
-				}
-				completeRowNos.clear();
-			}
-			
+			removeRows(completeRowNos);
 			
 			//redraw fixed objects
 			System.out.println("Bottom");
-			displayFixedObjects(fixedObjectsGC);
-			
-		}
-		
-		
+			displayFixedObjects(fixedObjectsGC);	
+		}	
 	}
 	
-	
+	private static void removeRows(LinkedList<Integer> rowNo) {
+
+		HashSet<XYPair> newSet = new HashSet<>();
+		for (XYPair xyPair : fixedObjects) {				//Delete all XYPairs from full rows
+			if(!rowNo.contains(xyPair.getyCoordinate())) {
+				newSet.add(xyPair);
+			}
+		}
+		fixedObjects=newSet;
+		//Remove empty rows (move upper rows down after complete rows get deleted)
+		Collections.sort(rowNo);
+		for (Integer integer : rowNo) {
+			for (XYPair xyPair : fixedObjects) {
+				if(xyPair.getyCoordinate()<integer) {
+					xyPair.setyCoordinate(xyPair.getyCoordinate()+1);
+				}
+			}	
+		}
+	}
 
 
 	public static void main(String[] args) {
@@ -244,6 +267,17 @@ public class TetrisMain extends Application {
 			fixedObjects.add(new XYPair(7, 19));
 			fixedObjects.add(new XYPair(8, 19));
 			fixedObjects.add(new XYPair(9, 19));
+			fixedObjects.add(new XYPair(3, 18));
+			fixedObjects.add(new XYPair(3, 18));
+			fixedObjects.add(new XYPair(0, 18));
+			fixedObjects.add(new XYPair(1, 18));
+			fixedObjects.add(new XYPair(2, 18));
+			fixedObjects.add(new XYPair(6, 18));
+			fixedObjects.add(new XYPair(4, 18));
+			fixedObjects.add(new XYPair(5, 18));
+			fixedObjects.add(new XYPair(7, 18));
+			fixedObjects.add(new XYPair(8, 18));
+			fixedObjects.add(new XYPair(9, 18));
 			displayFixedObjects(fixedObjectsGC);
 			centerPane.getChildren().add(fixedObjectsCanvas);
 			fixedObjectsCanvas.toBack();
@@ -305,14 +339,16 @@ public class TetrisMain extends Application {
 			
 			
 			//Create Timer for down movement
-//			Timer timer = new Timer(500, new ActionListener() {
-//				
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					performIfObjectAtBottom();
-//				}
-//			});
-//			timer.start();
+			Timer timer = new Timer(500, new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					performIfObjectAtBottom();
+					
+				}
+			});
+			timer.start();
 			
 			
 			
