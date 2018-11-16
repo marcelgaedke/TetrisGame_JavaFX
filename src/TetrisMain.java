@@ -1,21 +1,14 @@
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
 
-import javax.lang.model.type.IntersectionType;
-import javax.net.ssl.ExtendedSSLSession;
-import javax.print.attribute.SetOfIntegerSyntax;
+import javax.swing.Timer;
 
 import javafx.application.Application;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.event.EventTarget;
 import javafx.geometry.Insets;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -28,11 +21,8 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class TetrisMain extends Application {
 	
@@ -56,6 +46,7 @@ public class TetrisMain extends Application {
 	private static Canvas currentObjectCanvas = new Canvas(centerCanvasWidth,centerCanvasHeight);
 	private static GraphicsContext currentObjectGC = currentObjectCanvas.getGraphicsContext2D();
 	private static TetrisObject currentObject;
+	private static int score=0;
 	
 	private static void displayCurrentObject() {
 		//gridCanvasGC.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
@@ -106,7 +97,6 @@ public class TetrisMain extends Application {
 	
 	//Method to check if object is at bottom
 	private static boolean isBottom() {
-		System.out.println(currentObject.getyMax());
 		if(currentObject.getyMax()>=numOfRows-1) {
 			return true;
 		}
@@ -121,6 +111,62 @@ public class TetrisMain extends Application {
 		}	
 		return false;
 	}
+	
+	//This method is called when Object is at bottom
+	private static void performIfObjectAtBottom() {
+		currentObject.moveDown();
+		displayCurrentObject();
+		
+		//if Object is at bottom then fix it and generate new current Object
+		if(isBottom()) {		
+			currentObject.setFixed();
+			fixedObjects.addAll(currentObject.getObjectCoordinates());
+			//displayFixedObjects(fixedObjectsGC);
+			TetrisObject newObject = generateNewTetrisObject();
+			currentObject=newObject;
+			displayCurrentObject();
+			
+			//Check if any rows are complete
+			LinkedList<Integer> completeRowNos = new LinkedList<Integer>();
+			for(int i =20;i>0;i--) {
+				HashSet<Integer> rowSet =new HashSet<>();
+				for (XYPair xyPair : fixedObjects) {
+					if(xyPair.getyCoordinate()==i) {
+						rowSet.add(xyPair.getxCoordinate());
+					}
+				}
+				if(rowSet.size()==12) {
+					System.out.println("Row Nr. "+i+"is complete");
+					score++;
+					System.out.println("Score: "+score);
+					completeRowNos.add(new Integer(i));
+				}
+				
+			}
+			
+			//Remove complete rows
+			if(!completeRowNos.isEmpty()) {
+				for (XYPair xyPair : fixedObjects) {
+					for (Integer integer : completeRowNos) {
+						if(xyPair.getyCoordinate() == integer.intValue()) {
+							fixedObjects.remove(xyPair);
+						}
+					}
+				}
+				completeRowNos.clear();
+			}
+			
+			
+			//redraw fixed objects
+			System.out.println("Bottom");
+			displayFixedObjects(fixedObjectsGC);
+			
+		}
+		
+		
+	}
+	
+	
 
 
 	public static void main(String[] args) {
@@ -189,7 +235,15 @@ public class TetrisMain extends Application {
 			//Create fixed Objects
 			fixedObjects.add(new XYPair(3, 18));
 			fixedObjects.add(new XYPair(3, 19));
+			fixedObjects.add(new XYPair(0, 19));
+			fixedObjects.add(new XYPair(1, 19));
+			fixedObjects.add(new XYPair(2, 19));
+			fixedObjects.add(new XYPair(6, 19));
 			fixedObjects.add(new XYPair(4, 19));
+			fixedObjects.add(new XYPair(5, 19));
+			fixedObjects.add(new XYPair(7, 19));
+			fixedObjects.add(new XYPair(8, 19));
+			fixedObjects.add(new XYPair(9, 19));
 			displayFixedObjects(fixedObjectsGC);
 			centerPane.getChildren().add(fixedObjectsCanvas);
 			fixedObjectsCanvas.toBack();
@@ -241,25 +295,24 @@ public class TetrisMain extends Application {
 			//Eventhandler Down Button
 			EventHandler<MouseEvent> eventHandlerBtnDown = new EventHandler<MouseEvent>() {
 				@Override
-				public void handle(MouseEvent event) {
-					if(currentObject.getyMax()<numOfRows-1)
-					{
-						currentObject.moveDown();
-						displayCurrentObject();
-					}
-					
-					//if Object is at bottom then fix it and generate new current Object
-					if(isBottom()) {		
-						currentObject.setFixed();
-						fixedObjects.addAll(currentObject.getObjectCoordinates());
-						displayFixedObjects(fixedObjectsGC);
-						TetrisObject newObject = generateNewTetrisObject();
-						currentObject=newObject;
-						displayCurrentObject();
-					}	
+				public void handle(MouseEvent event) {			
+					performIfObjectAtBottom();
 				}
 			};
 			btnDown.addEventHandler(MouseEvent.MOUSE_CLICKED, eventHandlerBtnDown);
+			
+			
+			
+			
+			//Create Timer for down movement
+//			Timer timer = new Timer(500, new ActionListener() {
+//				
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					performIfObjectAtBottom();
+//				}
+//			});
+//			timer.start();
 			
 			
 			
@@ -272,6 +325,13 @@ public class TetrisMain extends Application {
 			// TODO: handle exception
 		}
 
+	}
+
+	@Override
+	public void stop() throws Exception {
+		// TODO Auto-generated method stub
+		super.stop();
+		System.exit(0);
 	}
 
 }
