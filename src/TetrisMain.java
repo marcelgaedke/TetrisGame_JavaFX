@@ -1,11 +1,15 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.lang.model.type.IntersectionType;
 import javax.net.ssl.ExtendedSSLSession;
+import javax.print.attribute.SetOfIntegerSyntax;
 
 import javafx.application.Application;
 import javafx.event.Event;
@@ -44,24 +48,77 @@ public class TetrisMain extends Application {
 	private static int centerCanvasHeight = windowHeight-topPaneHeight-bottomPaneHeight;
 	private static double gridRowHeight = centerCanvasHeight/numOfRows;
 	private static double gridColumnWidth = (double)centerCanvasWidth/numOfColums;
-	private static TetrisObject fixedObjects = new TetrisObject(new HashSet<XYPair>());
-
-	private static void displayOnGrid(TetrisObject t, GraphicsContext gc) {
-		gc.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
-		for (XYPair xyPair : t.getObjectCoordinates()) {
-			gc.setFill(Color.RED);
+	private static HashSet<XYPair> fixedObjects = new HashSet<>();
+	private static Canvas gridCanvas = new Canvas(centerCanvasWidth,centerCanvasHeight );
+	private static GraphicsContext gridCanvasGC = gridCanvas.getGraphicsContext2D();
+	private static Canvas fixedObjectsCanvas = new Canvas(centerCanvasWidth, centerCanvasHeight);
+	private static GraphicsContext fixedObjectsGC = fixedObjectsCanvas.getGraphicsContext2D();
+	private static Canvas currentObjectCanvas = new Canvas(centerCanvasWidth,centerCanvasHeight);
+	private static GraphicsContext currentObjectGC = currentObjectCanvas.getGraphicsContext2D();
+	private static TetrisObject currentObject;
+	
+	private static void displayCurrentObject() {
+		//gridCanvasGC.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
+		currentObjectGC.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
+		for (XYPair xyPair : currentObject.getObjectCoordinates()) {
+			currentObjectGC.setFill(Color.RED);
+			currentObjectGC.fillRect(xyPair.getxCoordinate()*gridColumnWidth, xyPair.getyCoordinate()*gridRowHeight, gridColumnWidth, gridRowHeight);
+		}
+	}
+	
+	private static void displayFixedObjects(GraphicsContext gc) {
+		for(XYPair xyPair:fixedObjects) {
+			gc.setFill(Color.PURPLE);
 			gc.fillRect(xyPair.getxCoordinate()*gridColumnWidth, xyPair.getyCoordinate()*gridRowHeight, gridColumnWidth, gridRowHeight);
 		}
 	}
 	
-	private static boolean isBottom(TetrisObject currentObject) {
-		if(fixedObjects.getObjectCoordinates().isEmpty()) {
-			if(currentObject.getyMax()==numOfRows-1) {
-				System.out.println("Bottom");
-				return true;
-			}
+	private static TetrisObject generateNewTetrisObject() {
+		TetrisObject[] objectArray = new TetrisObject[4];
+		HashSet<XYPair> set1 = new HashSet<>();
+		set1.add(new XYPair(6, 0));
+		set1.add(new XYPair(6, 1));
+		set1.add(new XYPair(6, 2));
+		set1.add(new XYPair(7, 2));
+		objectArray[0] = new TetrisObject(set1);
+		HashSet<XYPair> set2 = new HashSet<>();
+		set2.add(new XYPair(6, 0));
+		set2.add(new XYPair(6, 1));
+		set2.add(new XYPair(6, 2));
+		set2.add(new XYPair(6, 3));
+		objectArray[1] = new TetrisObject(set2);
+		HashSet<XYPair> set3 = new HashSet<>();
+		set3.add(new XYPair(6, 0));
+		set3.add(new XYPair(6, 1));
+		set3.add(new XYPair(7, 0));
+		set3.add(new XYPair(7, 1));
+		objectArray[2] = new TetrisObject(set3);
+		HashSet<XYPair> set4 = new HashSet<>();
+		set4.add(new XYPair(6, 0));
+		set4.add(new XYPair(6, 1));
+		set4.add(new XYPair(6, 2));
+		set4.add(new XYPair(5, 2));
+		objectArray[3] = new TetrisObject(set4);
+
+		int r = new Random().nextInt(4);
+		return objectArray[r];
+	}
+	
+	//Method to check if object is at bottom
+	private static boolean isBottom() {
+		System.out.println(currentObject.getyMax());
+		if(currentObject.getyMax()>=numOfRows-1) {
+			return true;
 		}
-		
+		for (XYPair xyPair : fixedObjects) {	//check if current Object is directly above the fixed objects
+			for (XYPair xyPair2 : currentObject.getObjectCoordinates()) {
+				if(xyPair.getxCoordinate()==xyPair2.getxCoordinate()) {
+					if(xyPair2.getyCoordinate()+1>=xyPair.getyCoordinate()) {
+						return true;
+					}
+				}
+			}
+		}	
 		return false;
 	}
 
@@ -117,63 +174,34 @@ public class TetrisMain extends Application {
 			Pane centerPane = new Pane();
 			
 			//Create Grid
-			Canvas gridCanvas = new Canvas(centerCanvasWidth,centerCanvasHeight );
-			GraphicsContext gc = gridCanvas.getGraphicsContext2D();
+			
 			//Draw Grid Rows
 			for(int i=0;i<=numOfRows;i++) {
-				gc.strokeLine(0, i*gridRowHeight, centerCanvasWidth, i*gridRowHeight);
+				gridCanvasGC.strokeLine(0, i*gridRowHeight, centerCanvasWidth, i*gridRowHeight);
 			}
 			//Draw Grid Columns
 			for(int j=0;j<=numOfColums;j++) {
-				gc.strokeLine(j*gridColumnWidth, 0, j*gridColumnWidth, centerCanvasHeight);
+				gridCanvasGC.strokeLine(j*gridColumnWidth, 0, j*gridColumnWidth, centerCanvasHeight);
 			}
 			centerPane.getChildren().add(gridCanvas);
 			
 			
+			//Create fixed Objects
+			fixedObjects.add(new XYPair(3, 18));
+			fixedObjects.add(new XYPair(3, 19));
+			fixedObjects.add(new XYPair(4, 19));
+			displayFixedObjects(fixedObjectsGC);
+			centerPane.getChildren().add(fixedObjectsCanvas);
+			fixedObjectsCanvas.toBack();
 			
 			//Create current TetrisObject
-			Canvas currentObjectCanvas = new Canvas(centerCanvasWidth,centerCanvasHeight);
-			GraphicsContext currentObjectGC = currentObjectCanvas.getGraphicsContext2D();
-			HashSet<XYPair> set = new HashSet<>();
-			set.add(new XYPair(6, 0));
-			set.add(new XYPair(6, 1));
-			set.add(new XYPair(6, 2));
-			set.add(new XYPair(7, 2));
-			TetrisObject[] objectArray = new TetrisObject[4];
-			objectArray[0] = new TetrisObject(set);
-			HashSet<XYPair> set2 = new HashSet<>();
-			set2.add(new XYPair(6, 0));
-			set2.add(new XYPair(6, 1));
-			set2.add(new XYPair(6, 2));
-			set2.add(new XYPair(6, 3));
-			objectArray[1] = new TetrisObject(set2);
-			HashSet<XYPair> set3 = new HashSet<>();
-			set3.add(new XYPair(6, 0));
-			set3.add(new XYPair(6, 1));
-			set3.add(new XYPair(7, 0));
-			set3.add(new XYPair(7, 1));
-			objectArray[2] = new TetrisObject(set3);
-			HashSet<XYPair> set4 = new HashSet<>();
-			set4.add(new XYPair(6, 0));
-			set4.add(new XYPair(6, 1));
-			set4.add(new XYPair(6, 2));
-			set4.add(new XYPair(5, 2));
-			objectArray[3] = new TetrisObject(set4);
-			
-			TetrisObject currentObject = objectArray[1];
-			displayOnGrid(currentObject,currentObjectGC);
+			currentObject = generateNewTetrisObject();
+			displayCurrentObject();
 			centerPane.getChildren().add(currentObjectCanvas);
 			currentObjectCanvas.toBack();
 			root.setCenter(centerPane);
-			
-			
-			
-			
-			
-			
-			
-			
-
+				
+			//show Stage and Scene
 			Stage stage = new Stage();
 			Scene scene = new Scene(root, windowWidth, windowHeight);
 			stage.setScene(scene);
@@ -189,7 +217,7 @@ public class TetrisMain extends Application {
 				public void handle(Event event) {
 					if(currentObject.getxMin()>0) {
 						currentObject.moveLeft();
-						displayOnGrid(currentObject, currentObjectGC);
+						displayCurrentObject();
 					}
 					
 				}
@@ -204,7 +232,7 @@ public class TetrisMain extends Application {
 					if(currentObject.getxMax()<numOfColums-1)
 					{
 						currentObject.moveRight();
-						displayOnGrid(currentObject, currentObjectGC);
+						displayCurrentObject();
 					}
 				}
 			});
@@ -217,19 +245,18 @@ public class TetrisMain extends Application {
 					if(currentObject.getyMax()<numOfRows-1)
 					{
 						currentObject.moveDown();
-						displayOnGrid(currentObject, currentObjectGC);
+						displayCurrentObject();
 					}
-					if(isBottom(currentObject)) {		//If Object is at the bottom, make it fixed
-						currentObject.setFixed();
-						HashSet<XYPair> set = fixedObjects.getObjectCoordinates();
-						set.addAll(currentObject.getObjectCoordinates());
-						fixedObjects = new TetrisObject(set);
-						TetrisObject newObject = new TetrisObject(set4);
-						
-						displayOnGrid(newObject, currentObjectGC);
-					}
-
 					
+					//if Object is at bottom then fix it and generate new current Object
+					if(isBottom()) {		
+						currentObject.setFixed();
+						fixedObjects.addAll(currentObject.getObjectCoordinates());
+						displayFixedObjects(fixedObjectsGC);
+						TetrisObject newObject = generateNewTetrisObject();
+						currentObject=newObject;
+						displayCurrentObject();
+					}	
 				}
 			};
 			btnDown.addEventHandler(MouseEvent.MOUSE_CLICKED, eventHandlerBtnDown);
