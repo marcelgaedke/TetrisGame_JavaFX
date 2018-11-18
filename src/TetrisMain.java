@@ -4,18 +4,25 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
+//import java.util.Set;
 
 import javax.swing.Timer;
 
-import javafx.animation.Animation;
-import javafx.animation.AnimationTimer;
+import org.omg.PortableServer.ServantActivator;
+
+import com.sun.glass.ui.Size;
+
+//import javafx.animation.Animation;
+//import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
-import javafx.animation.Timeline;
+//import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -28,6 +35,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -35,8 +43,8 @@ import javafx.util.Duration;
 public class TetrisMain extends Application {
 	
 	private static int windowWidth = 600;
-	private static int windowHeight = 600;
-	private static int topPaneHeight = 50;
+	private static int windowHeight = 650;
+	private static int topPaneHeight = 100;
 	private static int leftPaneWidth = 50;
 	private static int rightPaneWidth = 50;
 	private static int bottomPaneHeight = 50;
@@ -121,7 +129,8 @@ public class TetrisMain extends Application {
 	}
 	
 	//This method is called when Object is at bottom
-	private static void performIfObjectAtBottom() {
+	//private static void performIfObjectAtBottom() {
+	private static void objectDown() {
 		currentObject.moveDown();
 		displayCurrentObject();
 		
@@ -166,8 +175,6 @@ public class TetrisMain extends Application {
 				pauseTransition.setOnFinished(new EventHandler<ActionEvent>() {
 					@Override
 					public void handle(ActionEvent event) {
-						// TODO Auto-generated method stub
-						System.out.println("Pause over");
 						removeRows(completeRowNos);
 						displayFixedObjects(fixedObjectsGC);	
 					}
@@ -226,14 +233,37 @@ public class TetrisMain extends Application {
 			Background bg = new Background(bf);
 			
 			// Create Buttons at top
-			HBox topButtonBox = new HBox();
+			Pane topButtonBox = new Pane();
 			topButtonBox.setPrefHeight(topPaneHeight);
-			Button btnDown = new Button("Down");
-			Button btnLeft = new Button("Left");
-			Button btnRight = new Button("Right");
+			Button btnLeft = new Button(String.valueOf((char)11013));
+			btnLeft.setFont(Font.font(40));
+			btnLeft.setPrefSize(windowWidth/6, topPaneHeight);
+			btnLeft.setLayoutX(windowWidth/6);
+			btnLeft.setLayoutY(0);
+			Button btnDown = new Button(String.valueOf((char)11015));
+			btnDown.setFont(Font.font(40));
+			btnDown.setPrefSize(windowWidth/6, topPaneHeight);
+			btnDown.setLayoutX(2*windowWidth/6);
+			btnDown.setLayoutY(0);
+			Button btnRight = new Button(String.valueOf((char)10145));
+			btnRight.setFont(Font.font(40));
+			btnRight.setPrefSize(windowWidth/6, topPaneHeight);
+			btnRight.setLayoutX(3*windowWidth/6);
+			btnRight.setLayoutY(0);
 			Button btnTimerToggle = new Button ("Pause/Play");
-			Button btnRotateCounterClockwise = new Button("Rotate left");
-			Button btnRotateClockwise = new Button("Rotate right");
+			btnTimerToggle.setPrefSize(windowWidth/6, topPaneHeight);
+			btnTimerToggle.setLayoutX(0);
+			btnTimerToggle.setLayoutY(0);
+			Button btnRotateCounterClockwise = new Button(String.valueOf((char)8634));
+			btnRotateCounterClockwise.setFont(Font.font(40));
+			btnRotateCounterClockwise.setPrefSize(windowWidth/6, topPaneHeight);
+			btnRotateCounterClockwise.setLayoutX(4*windowWidth/6);
+			btnRotateCounterClockwise.setLayoutY(0);
+			Button btnRotateClockwise = new Button(String.valueOf((char)8635));
+			btnRotateClockwise.setFont(Font.font(40));
+			btnRotateClockwise.setPrefSize(windowWidth/6, topPaneHeight);
+			btnRotateClockwise.setLayoutX(5*windowWidth/6);
+			btnRotateClockwise.setLayoutY(0);
 			topButtonBox.getChildren().add(btnLeft);
 			topButtonBox.getChildren().add(btnDown);
 			topButtonBox.getChildren().add(btnRight);
@@ -263,6 +293,7 @@ public class TetrisMain extends Application {
 			
 			//Create Center Pane
 			Pane centerPane = new Pane();
+			centerPane.setPrefSize(centerCanvasWidth, centerCanvasHeight);
 			
 			//Create Grid
 			
@@ -352,7 +383,7 @@ public class TetrisMain extends Application {
 			EventHandler<MouseEvent> eventHandlerBtnDown = new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event) {			
-					performIfObjectAtBottom();
+					objectDown();
 				}
 			};
 			btnDown.addEventHandler(MouseEvent.MOUSE_CLICKED, eventHandlerBtnDown);
@@ -365,7 +396,7 @@ public class TetrisMain extends Application {
 				@Override
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					// TODO Auto-generated method stub
-					performIfObjectAtBottom();
+					objectDown();
 				}
 			});
 			timer.start();	
@@ -391,8 +422,15 @@ public class TetrisMain extends Application {
 				@Override
 				public void handle(ActionEvent event) {
 					// TODO Auto-generated method stub
-					currentObject.rotateClockwise();
-					displayCurrentObject();
+					TetrisObject tempObject = new TetrisObject(currentObject.getObjectCoordinates());
+					tempObject.rotateClockwise();
+					if(tempObject.getxMax()<=numOfColums && tempObject.getxMin()>0) {
+						if(Collections.disjoint(fixedObjects, tempObject.getObjectCoordinates())) {
+							currentObject.rotateClockwise();
+							displayCurrentObject();
+						}
+					}
+						
 				}
 			};
 			btnRotateClockwise.setOnAction(RotateClockwiseEventHandler);
@@ -404,8 +442,16 @@ public class TetrisMain extends Application {
 				@Override
 				public void handle(Event event) {
 					// TODO Auto-generated method stub
-					currentObject.rotateCounterClockwise();
-					displayCurrentObject();
+					TetrisObject tempObject = new TetrisObject(currentObject.getObjectCoordinates());
+					tempObject.rotateCounterClockwise();
+					if(tempObject.getxMax()<=numOfColums && tempObject.getxMin()>0) {
+						if(Collections.disjoint(fixedObjects, tempObject.getObjectCoordinates())) {
+							currentObject.rotateCounterClockwise();
+							displayCurrentObject();
+						}
+					}
+					
+					
 				}
 			});
 			
