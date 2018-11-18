@@ -1,4 +1,4 @@
-import java.awt.event.ActionEvent;
+//import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,6 +11,7 @@ import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -125,19 +126,7 @@ public class TetrisMain extends Application {
 		
 		//if Object is at bottom then fix it and generate new current Object
 		if(isBottom()) {		
-			currentObject.setFixed();
-			
-			
-						
-//			PauseTransition pauseTransition = new PauseTransition(Duration.seconds(1));
-//			pauseTransition.setOnFinished(event ->{
-//				
-//			});
-			
-				
-
-			
-			
+			currentObject.setFixed();			
 			fixedObjects.addAll(currentObject.getObjectCoordinates());
 			//displayFixedObjects(fixedObjectsGC);
 			TetrisObject newObject = generateNewTetrisObject();
@@ -163,11 +152,35 @@ public class TetrisMain extends Application {
 			}
 			
 			//Remove complete rows
-			removeRows(completeRowNos);
+			if(!completeRowNos.isEmpty()) {
+				
+				//If rows are complete highlight them in yellow and then remove
+				for (Integer integer : completeRowNos) {
+					fixedObjectsGC.setFill(Color.YELLOW);
+					fixedObjectsGC.fillRect(0, integer*gridRowHeight, centerCanvasWidth, gridRowHeight);
+				}
+				
+				
+				PauseTransition pauseTransition = new PauseTransition(Duration.millis(300));
+				pauseTransition.setOnFinished(new EventHandler<ActionEvent>() {
+					@Override
+					public void handle(ActionEvent event) {
+						// TODO Auto-generated method stub
+						System.out.println("Pause over");
+						removeRows(completeRowNos);
+						displayFixedObjects(fixedObjectsGC);	
+					}
+				} );
+				pauseTransition.play();
+				
+			}else {
+				//redraw fixed objects
+				displayFixedObjects(fixedObjectsGC);	
+			}
 			
-			//redraw fixed objects
-			System.out.println("Bottom");
-			displayFixedObjects(fixedObjectsGC);	
+			
+			
+			
 		}	
 	}
 	
@@ -341,11 +354,12 @@ public class TetrisMain extends Application {
 			//Create Timer for down movement
 			Timer timer = new Timer(500, new ActionListener() {
 				
+				
+
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void actionPerformed(java.awt.event.ActionEvent e) {
 					// TODO Auto-generated method stub
 					performIfObjectAtBottom();
-					
 				}
 			});
 			timer.start();
