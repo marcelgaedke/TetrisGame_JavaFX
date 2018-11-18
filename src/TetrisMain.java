@@ -7,6 +7,7 @@ import java.util.Random;
 
 import javax.swing.Timer;
 
+import javafx.animation.Animation;
 import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
@@ -211,6 +212,8 @@ public class TetrisMain extends Application {
 
 	}
 
+	
+	//--------------------------------------Start of Program------------------------------
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		// TODO Auto-generated method stub
@@ -228,9 +231,15 @@ public class TetrisMain extends Application {
 			Button btnDown = new Button("Down");
 			Button btnLeft = new Button("Left");
 			Button btnRight = new Button("Right");
+			Button btnTimerToggle = new Button ("Pause/Play");
+			Button btnRotateCounterClockwise = new Button("Rotate left");
+			Button btnRotateClockwise = new Button("Rotate right");
 			topButtonBox.getChildren().add(btnLeft);
 			topButtonBox.getChildren().add(btnDown);
 			topButtonBox.getChildren().add(btnRight);
+			topButtonBox.getChildren().add(btnTimerToggle);
+			topButtonBox.getChildren().add(btnRotateCounterClockwise);
+			topButtonBox.getChildren().add(btnRotateClockwise);
 			root.setTop(topButtonBox);
 			
 			//Create left Pane
@@ -353,21 +362,57 @@ public class TetrisMain extends Application {
 			
 			//Create Timer for down movement
 			Timer timer = new Timer(500, new ActionListener() {
-				
-				
-
 				@Override
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					// TODO Auto-generated method stub
 					performIfObjectAtBottom();
 				}
 			});
-			timer.start();
+			timer.start();	
+			
+			
+			//Event Handler for Pause/Play Button
+			btnTimerToggle.setOnMouseClicked(new EventHandler<Event>() {
+
+				@Override
+				public void handle(Event event) {
+					// TODO Auto-generated method stub
+					if(timer.isRunning()) {
+						timer.stop();
+					}else {
+						timer.start();
+					}
+				}
+			});
+			
+			//Event Handler for Button Rotate Clockwise
+			EventHandler<ActionEvent> RotateClockwiseEventHandler = new EventHandler<ActionEvent>() {
+
+				@Override
+				public void handle(ActionEvent event) {
+					// TODO Auto-generated method stub
+					currentObject.rotateClockwise();
+					displayCurrentObject();
+				}
+			};
+			btnRotateClockwise.setOnAction(RotateClockwiseEventHandler);
+			
+			
+			//Event Handler for Button Rotate Counter Clockwise
+			btnRotateCounterClockwise.setOnMouseClicked(new EventHandler<Event>() {
+
+				@Override
+				public void handle(Event event) {
+					// TODO Auto-generated method stub
+					currentObject.rotateCounterClockwise();
+					displayCurrentObject();
+				}
+			});
 			
 			
 			
 			
-		}
+		}	//End of Try Block
 			 
 
 		 

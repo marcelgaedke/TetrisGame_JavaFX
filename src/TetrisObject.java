@@ -68,6 +68,113 @@ public class TetrisObject {
 			yMax++;
 		}
 	}
+	
+	public void rotateClockwise() {
+
+		if(this.isFixed==false) {
+			boolean[][] matrix = new boolean[4][4];		//initialize Matrix to all false
+			boolean[][] newMatrix = new boolean[4][4];
+			for(int i=0;i<4;i++) {
+				for(int j=0;j<4;j++){
+					matrix[i][j]=false;
+					newMatrix[i][j]=false;
+				}
+			}
+			for (XYPair xyPair : this.getObjectCoordinates()) {		//Create boolean Matrix for rotation
+				int x = xyPair.getxCoordinate()-this.getxMin();
+				int y = xyPair.getyCoordinate()-this.getyMin();
+				matrix[x][y]=true;
+			}
+			
+			//Rotate 4x4 Boolean Matrix
+			
+			//Rotate outer Ring	
+			for(int i = 0;i<4;i++) {								
+				//newMatrix[0][3-i]=matrix[i][0];		//Step 1 move top row to left column
+				newMatrix[i][0]=matrix[0][3-i];
+				//newMatrix[i][0]=matrix[3][i];		//Step 2 move last column to top row
+				newMatrix[3][i]=matrix[i][0];
+				//newMatrix[3][3-i]=matrix[i][3];		//Step 3 move bottom row to last column
+				newMatrix[i][3]=matrix[3][3-i];
+				//newMatrix[i][3]=matrix[0][i];		//Step 4 move first column to bottom row
+				newMatrix[0][i]=matrix[i][3];
+			}
+			
+			//Rotate inner Ring
+			for(int i =1;i<3;i++) {
+				//newMatrix[1][3-i]=matrix[i][1];		//Step 1 move top row to left column
+				newMatrix[i][1]=matrix[1][3-i];
+				//newMatrix[i][1]=matrix[2][i];		//Step 2 move last column to top row
+				newMatrix[2][i]=matrix[i][1];
+				//newMatrix[2][3-i]=matrix[i][2];		//Step 3 move bottom row to last column
+				newMatrix[i][2]=matrix[2][3-i];
+				//newMatrix[i][2]=matrix[1][i];		//Step 4 move first column to bottom row
+				newMatrix[1][i]=matrix[i][2];
+			}
+			
+			
+			//Create new HashSet with new Coordinates after Rotation
+			HashSet<XYPair> newSet = new HashSet<XYPair>();
+			for (int x=0;x<4;x++) {		
+				for (int y=0;y<4;y++) {
+					if(newMatrix[x][y]==true) {
+						newSet.add(new XYPair(x+this.getxMin(), y+this.getyMin()));
+					}
+				}
+				
+			}
+			this.objectCoordinates=newSet;	
+		}
+	
+	}
+	
+	public void rotateCounterClockwise() {
+		if(this.isFixed==false) {
+			boolean[][] matrix = new boolean[4][4];		//initialize Matrix to all false
+			boolean[][] newMatrix = new boolean[4][4];
+			for(int i=0;i<4;i++) {
+				for(int j=0;j<4;j++){
+					matrix[i][j]=false;
+					newMatrix[i][j]=false;
+				}
+			}
+			for (XYPair xyPair : this.getObjectCoordinates()) {		//Create boolean Matrix for rotation
+				int x = xyPair.getxCoordinate()-this.getxMin();
+				int y = xyPair.getyCoordinate()-this.getyMin();
+				matrix[x][y]=true;
+			}
+			
+			//Rotate 4x4 Boolean Matrix
+			
+			//Rotate outer Ring	
+			for(int i = 0;i<4;i++) {								
+				newMatrix[0][3-i]=matrix[i][0];		//Step 1 move top row to left column
+				newMatrix[i][0]=matrix[3][i];		//Step 2 move last column to top row
+				newMatrix[3][3-i]=matrix[i][3];		//Step 3 move bottom row to last column
+				newMatrix[i][3]=matrix[0][i];		//Step 4 move first column to bottom row
+			}
+			
+			//Rotate inner Ring
+			for(int i =1;i<3;i++) {
+				newMatrix[1][3-i]=matrix[i][1];		//Step 1 move top row to left column
+				newMatrix[i][1]=matrix[2][i];		//Step 2 move last column to top row
+				newMatrix[2][3-i]=matrix[i][2];		//Step 3 move bottom row to last column
+				newMatrix[i][2]=matrix[1][i];		//Step 4 move first column to bottom row
+			}
+			
+			
+			//Create new HashSet with new Coordinates after Rotation
+			HashSet<XYPair> newSet = new HashSet<XYPair>();
+			for (int x=0;x<4;x++) {		
+				for (int y=0;y<4;y++) {
+					if(newMatrix[x][y]==true) {
+						newSet.add(new XYPair(x+this.getxMin(), y+this.getyMin()));
+					}
+				}
+			}
+			this.objectCoordinates=newSet;	
+		}
+	}
 
 
 	public int getxMin() {
