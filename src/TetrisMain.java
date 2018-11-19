@@ -25,6 +25,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -326,8 +327,12 @@ public class TetrisMain extends Application {
 			for(int j=0;j<=numOfColums;j++) {
 				gridCanvasGC.strokeLine(j*gridColumnWidth, 0, j*gridColumnWidth, centerCanvasHeight);
 			}
-			centerPane.getChildren().add(gridCanvas);
 			
+			//Draw Game Over Line
+			centerPane.getChildren().add(gridCanvas);
+			Line line = new Line(0, 4*gridRowHeight, centerCanvasWidth, 4*gridRowHeight);
+			line.setStrokeWidth(5);
+			centerPane.getChildren().add(line);
 			
 			//Create fixed Objects
 			fixedObjects.add(new XYPair(3, 18));
