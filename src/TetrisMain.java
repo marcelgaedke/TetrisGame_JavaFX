@@ -187,7 +187,7 @@ public class TetrisMain extends Application {
 						label.setFont(Font.font(50));
 						label.setTextFill(Color.RED);
 						label.setLayoutX(50);
-						label.setLayoutY(50);
+						label.setLayoutY(25);
 						centerPane.getChildren().add(label);
 						PauseTransition pTransition = new PauseTransition(Duration.seconds(2));
 						pTransition.setOnFinished(new EventHandler<ActionEvent>() {
