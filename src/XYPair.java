@@ -4,13 +4,11 @@ public class XYPair {
 	private int yCoordinate = 0;
 
 	public XYPair(int x, int y) {
-		//this.xCoordinate = x * 20 + 50;
-		//this.yCoordinate = y * 20 + 60;
 		this.xCoordinate = x;
 		this.yCoordinate = y;
 		
 	}
-
+ 
 	public int getxCoordinate() {
 		return xCoordinate;
 	}
