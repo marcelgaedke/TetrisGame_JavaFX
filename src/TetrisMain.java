@@ -58,8 +58,10 @@ public class TetrisMain extends Application {
 	private static GraphicsContext currentObjectGC = currentObjectCanvas.getGraphicsContext2D();
 	private static TetrisObject currentObject;
 	private static int score=0;
+	private static int level=1;
 	private static AnimationTimer timer;
 	private static boolean timerRunning = false;
+	private static int timerRate = 500_000_000;
 	
 	private static void displayCurrentObject() {
 		currentObjectGC.clearRect(0, 0, centerCanvasWidth, centerCanvasHeight);
@@ -153,7 +155,7 @@ public class TetrisMain extends Application {
 				label1.setLayoutX(100);
 				label1.setLayoutY(100);
 				centerPane.getChildren().add(label1);
-				Label label2 = new Label("Score: " + score);
+				Label label2 = new Label("Score: " + score+"\nLevel: "+level);
 				label2.setFont(Font.font(30));
 				label2.setAlignment(Pos.CENTER);
 				label2.setTextFill(Color.BLACK);
@@ -174,10 +176,31 @@ public class TetrisMain extends Application {
 						rowSet.add(xyPair.getxCoordinate());
 					}
 				}
-				if(rowSet.size()==12) {	
-					//System.out.println("Row Nr. "+i+"is complete");
+				if(rowSet.size()==12) {		//Score ++
 					score++;
 					System.out.println("Score: "+score);
+					if(score==level*2) {		//New Level after 10 rows
+						level++;
+						System.out.println("New Level: "+level);
+						timerRate=timerRate/2;
+						Label label = new Label("New Level: "+level);
+						label.setFont(Font.font(50));
+						label.setTextFill(Color.RED);
+						label.setLayoutX(50);
+						label.setLayoutY(50);
+						centerPane.getChildren().add(label);
+						PauseTransition pTransition = new PauseTransition(Duration.seconds(2));
+						pTransition.setOnFinished(new EventHandler<ActionEvent>() {
+
+							@Override
+							public void handle(ActionEvent event) {
+								// TODO Auto-generated method stub
+								centerPane.getChildren().remove(label);
+							}
+						});
+						pTransition.play();
+					}
+					
 					completeRowNos.add(new Integer(i));
 				}
 				
@@ -414,26 +437,13 @@ public class TetrisMain extends Application {
 			btnDown.addEventHandler(MouseEvent.MOUSE_CLICKED, eventHandlerBtnDown);
 			
 			
-			
-			/*
-			//Create Timer for down movement
-			timer = new Timer(500, new ActionListener() {
-				@Override
-				public void actionPerformed(java.awt.event.ActionEvent e) {
-					// TODO Auto-generated method stub
-					objectDown();
-					
-				}
-			});
-			timer.start();	*/
-			
 			timer = new AnimationTimer() {
 				
 				private long last_update=0;
 
 				@Override
 				public void handle(long now) {
-					if((now-last_update)>=300_000_000) {
+					if((now-last_update)>=timerRate) {
 						objectDown();
 						last_update=now;
 					}
