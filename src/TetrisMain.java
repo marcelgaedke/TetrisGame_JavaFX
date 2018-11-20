@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
 
+import org.omg.CORBA.TRANSACTION_MODE;
 
 import javafx.animation.AnimationTimer;
 import javafx.animation.PauseTransition;
@@ -108,6 +109,11 @@ public class TetrisMain extends Application {
 
 		int r = new Random().nextInt(4);
 		return objectArray[r];
+	}
+	
+	//Method to check for collision
+	private static boolean checkCollision(TetrisObject t) {
+		return Collections.disjoint(t.getObjectCoordinates(), fixedObjects);
 	}
 	
 	//Method to check if object is at bottom
@@ -405,8 +411,14 @@ public class TetrisMain extends Application {
 				@Override
 				public void handle(Event event) {
 					if(currentObject.getxMin()>0) {
-						currentObject.moveLeft();
-						displayCurrentObject();
+						HashSet<XYPair> hashSet1 = new HashSet<>();
+						for (XYPair xyPair : currentObject.getObjectCoordinates()) {
+							hashSet1.add(new XYPair(xyPair.getxCoordinate()-1, xyPair.getyCoordinate()));
+						}
+						if(Collections.disjoint(hashSet1, fixedObjects)) {
+							currentObject.moveLeft();
+						}
+						
 					}
 					
 				}
@@ -420,8 +432,14 @@ public class TetrisMain extends Application {
 				public void handle(Event event) {
 					if(currentObject.getxMax()<numOfColums-1)
 					{
-						currentObject.moveRight();
-						displayCurrentObject();
+						HashSet<XYPair> hashSet1 = new HashSet<>();
+						for (XYPair xyPair : currentObject.getObjectCoordinates()) {
+							hashSet1.add(new XYPair(xyPair.getxCoordinate()+1, xyPair.getyCoordinate()));
+						}
+						if(Collections.disjoint(hashSet1, fixedObjects)) {
+							currentObject.moveRight();
+						}
+						
 					}
 				}
 			});
